@@ -18,6 +18,17 @@
 WiFiClientSecure connection;
 Network::ConnectionHandler connectionHandler(&connection);
 Application app(&connectionHandler);
+TaskHandle_t ConnectionHandlerTask;
+
+void connectionHandlerLoop(void* pvParameters) {
+  for (;;) {
+    // Loop the connection
+    connectionHandler.loop();
+
+    // Give away the core
+    delay(100);
+  }
+}
 
 void setup() {
   Serial.begin(9600);
@@ -89,14 +100,21 @@ void setup() {
   packet->firmwareChecksum(hash);
   connectionHandler.write(packet);
 
+  // Start the TCP listener on core 0
+  xTaskCreatePinnedToCore(
+                    connectionHandlerLoop,   /* Task function. */
+                    "ConnectionHandler",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &ConnectionHandlerTask,      /* Task handle to keep track of created task */
+                    0);          /* pin task to core 0 */       
+
   // Start the application
   app.setup();
 }
 
 void loop() {
-  // Loop the connection first
-  connectionHandler.loop();
-
   // Then the application 
   app.loop();
 }
