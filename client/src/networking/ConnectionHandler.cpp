@@ -12,17 +12,18 @@ namespace Network {
     }
 
     void ConnectionHandler::loop() {
-        if (this->_connection->available() > 0) {
+        while (this->_connection->available() > 0) {
             Buffer buf(this->_connection);
             byte packetID = buf.readByte();
             Handler::PacketHandler* handler = this->_handlers[packetID];
             if (handler != nullptr) {
                 Packet::Packet* packet = handler->generatePacket();
                 packet->read(&buf);
+                buf.checkEnd();
                 handler->process(packet);
-                free(packet);
+                delete packet;
             } else {
-                throw std::invalid_argument("Unknown packet id");
+                Serial.println("Unknown packet id");
             }
         }
     }

@@ -3,18 +3,20 @@ package network
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"log"
+	"net"
+
 	"gardon.local/server/client"
 	"gardon.local/server/firmware"
 	"gardon.local/server/network/handler"
 	"gardon.local/server/network/packet"
 	"gardon.local/server/util"
-	"log"
-	"net"
 )
 
 var (
 	handlers []handler.Handler
-	fw *firmware.Firmware
+	fw       *firmware.Firmware
 )
 
 func Init(firmware *firmware.Firmware) {
@@ -29,14 +31,14 @@ func Init(firmware *firmware.Firmware) {
 type Handler struct {
 	conn net.Conn
 
-	data *client.Data
+	data    *client.Data
 	closeCB func(conn net.Conn)
 }
 
 func NewHandler(conn net.Conn, closeCB func(c net.Conn)) *Handler {
 	h := &Handler{
-		conn: conn,
-		data: &client.Data{},
+		conn:    conn,
+		data:    &client.Data{},
 		closeCB: closeCB,
 	}
 	go h.serve()
@@ -55,9 +57,19 @@ func (h *Handler) Write(packet packet.Packet) {
 
 	// Write the contents
 	h.conn.Write(buf.Bytes())
+
+	// Debug
+	fmt.Print(uint16(buf.Len()))
+	fmt.Print(": ")
+
+	if buf.Len() < 100 {
+		fmt.Println(buf.Bytes())
+	} else {
+		fmt.Println(buf.Bytes()[:100])
+	}
 }
 
-func (h *Handler) serve()  {
+func (h *Handler) serve() {
 	defer h.conn.Close()
 
 	for {

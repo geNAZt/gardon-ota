@@ -43,6 +43,7 @@ namespace Network {
 
     void Buffer::_ensureReadable(size_t count) {
         if (this->_wantedToRead < this->_pos + count) {
+            Serial.println("can't read beyond packet length");
             throw std::out_of_range("can't read beyond packet length");
         }
     }
@@ -64,8 +65,6 @@ namespace Network {
     }
 
     String Buffer::readString() {
-        unsigned short strLen = this->readUnsignedShort();
-        this->_ensureReadable(strLen);
         Util::FatPointer pointer = this->readBytes();
 
         String str;
@@ -84,7 +83,7 @@ namespace Network {
         this->_pos += len;
 
         return Util::FatPointer{
-            .data = data
+            .data = data,
             .size = len
         };        
     }
@@ -98,7 +97,10 @@ namespace Network {
 
     byte Buffer::readByte() {
         this->_ensureReadable(1);
-        byte data = this->_connection->read();
+        uint8_t* bufData = (uint8_t*) malloc(1);
+        this->_connection->readBytes(bufData, 1);
+        byte data = bufData[0] + 0;
+        free(bufData);
         this->_pos++;
         return data;
     }
@@ -108,6 +110,31 @@ namespace Network {
         this->_buf[this->_pos++] = value;
     }
 
+    void Buffer::writeBytes(Util::FatPointer value) {
+        this->writeUnsignedShort(value.size);
+        this->_ensureWritable(value.size);
+        memcpy(this->_buf + this->_pos, value.data, value.size);
+        this->_pos += value.size;
+    }
+
+    void Buffer::writeUnsignedInt(unsigned int value) {
+        this->_ensureWritable(4);
+        this->_buf[this->_pos++] = (value >> 24) & 0xFF; 
+        this->_buf[this->_pos++] = (value >> 16) & 0xFF; 
+        this->_buf[this->_pos++] = (value >> 8) & 0xFF; 
+        this->_buf[this->_pos++] = value & 0xFF;
+    }
+
+    unsigned int Buffer::readUnsignedInt() {
+        this->_ensureReadable(4);
+        uint8_t* bufData = (uint8_t*) malloc(4);
+        this->_connection->readBytes(bufData, 4);
+        unsigned int uInt = (bufData[0] << 24) | (bufData[1] << 16) | (bufData[2] << 8) | bufData[3];
+        free(bufData);
+        this->_pos += 4;
+        return uInt;
+    }
+
     void Buffer::print() {
         for (int i = 0; i < this->_pos; i++) {
             Serial.print(this->_buf[i]);
@@ -115,6 +142,13 @@ namespace Network {
         }
 
         Serial.println();
+    }
+
+    void Buffer::checkEnd() {
+        size_t left = (this->_wantedToRead - this->_pos);
+        if (left > 0) {
+            Serial.printf("Remaining bytes: %i\n", left);
+        }
     }
 
 }

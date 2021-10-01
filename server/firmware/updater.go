@@ -3,19 +3,23 @@ package firmware
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"gardon.local/server/client"
-	"gardon.local/server/network/packet"
-	"github.com/fsnotify/fsnotify"
 	"log"
 	"math"
 	"os"
+	"time"
+
+	"gardon.local/server/client"
+	"gardon.local/server/network/packet"
+	"github.com/fsnotify/fsnotify"
 )
 
 const CHUNK_SIZE uint16 = 32767
 
 type Firmware struct {
 	checksum string
+
 	chunks [][]byte
+	size   uint32
 
 	cb func(string)
 }
@@ -59,6 +63,14 @@ func (f *Firmware) updateChecksum() {
 		return
 	}
 
+	// Wait 30 seconds till everything is done
+	if time.Now().Sub(stat.ModTime()) < 30*time.Second {
+		timer := time.NewTimer(30 * time.Second)
+		<-timer.C
+		f.updateChecksum()
+		return
+	}
+
 	// Calc amount of chunks we need
 	log.Printf("Firmware size: %d\n", stat.Size())
 	chunkAmount := math.Ceil(float64(stat.Size()) / float64(CHUNK_SIZE))
@@ -84,6 +96,7 @@ func (f *Firmware) updateChecksum() {
 	// Convert the bytes to a string
 	f.checksum = hex.EncodeToString(hashInBytes)
 	f.chunks = chunks
+	f.size = uint32(stat.Size())
 	f.cb(f.checksum)
 }
 
@@ -93,7 +106,7 @@ func (f *Firmware) Checksum() string {
 
 func (f *Firmware) SendUpdate(client client.Client) {
 	// Send OTA start first
-	client.Write(packet.NewOTAPacket(packet.START, packet.FIRMWARE))
+	client.Write(packet.NewOTAPacketStart(packet.FIRMWARE, f.size, f.checksum))
 
 	// Now send all chunks
 	for _, chunk := range f.chunks {

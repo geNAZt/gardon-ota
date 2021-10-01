@@ -1,6 +1,8 @@
 package util
 
-import "io"
+import (
+	"io"
+)
 
 func ReadString(buf io.Reader) (string, error) {
 	data, err := ReadBytes(buf)
@@ -49,7 +51,12 @@ func WriteBytes(buf io.Writer, value []byte) error {
 }
 
 func WriteUnsignedShort(buf io.Writer, value uint16) error {
-	_, err := buf.Write([]byte{ byte(value >> 8), byte(value)})
+	_, err := buf.Write([]byte{byte(value >> 8), byte(value)})
+	return err
+}
+
+func WriteUnsignedInt(buf io.Writer, value uint32) error {
+	_, err := buf.Write([]byte{byte(value >> 24), byte(value >> 16), byte(value >> 8), byte(value)})
 	return err
 }
 

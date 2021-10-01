@@ -92,43 +92,10 @@ void setup() {
   Network::Packet::CurrentVersionPacket* packet = new Network::Packet::CurrentVersionPacket();
   packet->firmwareChecksum(hash);
   connectionHandler.write(packet);
+
+  Serial.println("OTA rocks!");
 }
 
 void loop() {
   connectionHandler.loop();
-
-  /*if (connection.available() > 0) {
-    uint8_t* packetSizeBytes = (uint8_t*) malloc(2);
-    connection.readBytes(packetSizeBytes, 2);
-
-    unsigned short packetSize = (packetSizeBytes[0] << 8) | packetSizeBytes[1];
-    free(packetSizeBytes);
-    Serial.print("Got ");
-    Serial.print(packetSize);
-    Serial.print(" bytes");
-
-    uint8_t* data = (uint8_t*) malloc(packetSize);
-    connection.readBytes(data, packetSize);
-    free(data);
-  }
-
-  // put your main code here, to run repeatedly:
-  size_t packetSize = 2 + 1 + 2 + 5;
-  uint8_t* packet = (uint8_t*) malloc(packetSize);
-  packet[0] = 0;
-  packet[1] = 8;
-  packet[2] = 1;
-  packet[3] = 0;
-  packet[4] = 5;
-  packet[5] = 'H';
-  packet[6] = 'e';
-  packet[7] = 'l';
-  packet[8] = 'l';
-  packet[9] = 'o';
-  connection.write((const uint8_t*) packet, packetSize);
-
-  free(packet);
-
-  // We are connected, free read file
-  Serial.println(ESP.getFreeHeap());*/
 }

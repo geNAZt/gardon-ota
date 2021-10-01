@@ -1,8 +1,7 @@
 namespace Util {
-    typedef struct FatPointer
+    struct FatPointer
     {
         uint8_t* data;
         unsigned short size;
     };
-    
 }

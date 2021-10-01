@@ -1,8 +1,9 @@
 package packet
 
 import (
-	"gardon.local/server/util"
 	"io"
+
+	"gardon.local/server/util"
 )
 
 type Type byte
@@ -21,15 +22,28 @@ const (
 
 type OTAPacket struct {
 	Packet
+
 	actionType Type
-	partition Partition
+	partition  Partition
+
 	chunkData []byte
+	size      uint32
+	checksum  string
 }
 
 func NewOTAPacket(actionType Type, partition Partition) *OTAPacket {
 	return &OTAPacket{
 		actionType: actionType,
 		partition:  partition,
+	}
+}
+
+func NewOTAPacketStart(partition Partition, size uint32, checksum string) *OTAPacket {
+	return &OTAPacket{
+		actionType: START,
+		partition:  partition,
+		size:       size,
+		checksum:   checksum,
 	}
 }
 
@@ -52,6 +66,16 @@ func (pkt *OTAPacket) Write(buf io.Writer) error {
 
 	if pkt.actionType == START {
 		err = util.WriteByte(buf, byte(pkt.partition))
+		if err != nil {
+			return err
+		}
+
+		err = util.WriteUnsignedInt(buf, pkt.size)
+		if err != nil {
+			return err
+		}
+
+		err = util.WriteString(buf, pkt.checksum)
 	} else if pkt.actionType == CHUNK {
 		err = util.WriteBytes(buf, pkt.chunkData)
 	}

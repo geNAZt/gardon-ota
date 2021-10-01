@@ -22,13 +22,17 @@ namespace Network {
             byte readByte();
             void writeByte(byte value);
 
-            Util::FatPointer* readBytes();
-            void writeBytes(Util::FatPointer* value);
+            Util::FatPointer readBytes();
+            void writeBytes(Util::FatPointer value);
+
+            unsigned int readUnsignedInt();
+            void writeUnsignedInt(unsigned int value);
 
             size_t length();
             uint8_t* buf();
 
             void print();
+            void checkEnd();
         private:
             unsigned short _pos{};
 

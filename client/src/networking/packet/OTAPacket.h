@@ -17,6 +17,8 @@ namespace Network {
                     FIRMWARE
                 };
 
+                ~OTAPacket();
+
                 uint8_t id() override;
                 size_t estLength() override;
                 void read(Buffer* buf) override;
@@ -24,9 +26,15 @@ namespace Network {
 
                 Type type();
                 Partition partition();
+                Util::FatPointer data();
+                unsigned int size();
+                String checksum();
             private:
                 Type _type;
                 Partition _partition;
+                Util::FatPointer _data;
+                unsigned int _size;
+                String _checksum;
         };
     }
 }
