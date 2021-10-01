@@ -1,3 +1,5 @@
+#include "application.h"
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
@@ -15,13 +17,7 @@
 
 WiFiClientSecure connection;
 Network::ConnectionHandler connectionHandler(&connection);
-
-void printHex(uint8_t num) {
-  char hexCar[2];
-
-  sprintf(hexCar, "%02X", num);
-  Serial.print(hexCar);
-}
+Application app(&connectionHandler);
 
 void setup() {
   Serial.begin(9600);
@@ -93,9 +89,14 @@ void setup() {
   packet->firmwareChecksum(hash);
   connectionHandler.write(packet);
 
-  Serial.println("OTA rocks!");
+  // Start the application
+  app.setup();
 }
 
 void loop() {
+  // Loop the connection first
   connectionHandler.loop();
+
+  // Then the application 
+  app.loop();
 }
