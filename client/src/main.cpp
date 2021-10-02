@@ -1,4 +1,4 @@
-#include "application.h"
+#include "Application.hpp"
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -15,20 +15,11 @@
 #include "networking/ConnectionHandler.h"
 #include "networking/packet/CurrentVersionPacket.h"
 
+#include "logger/Logger.hpp"
+
 WiFiClientSecure connection;
 Network::ConnectionHandler connectionHandler(&connection);
 Application app(&connectionHandler);
-TaskHandle_t ConnectionHandlerTask;
-
-void connectionHandlerLoop(void* pvParameters) {
-  for (;;) {
-    // Loop the connection
-    connectionHandler.loop();
-
-    // Give away the core
-    delay(500);
-  }
-}
 
 void setup() {
   Serial.begin(9600);
@@ -89,6 +80,7 @@ void setup() {
 
   // Set remote 
   connectionHandler.remote(doc["remote"].as<String>());
+  connectionHandler.connect();
 
   // Check what firmware we currently run
   String hash = ESP.getSketchMD5();
@@ -100,21 +92,17 @@ void setup() {
   packet->firmwareChecksum(hash);
   connectionHandler.write(packet);
 
-  // Start the TCP listener on core 0
-  xTaskCreatePinnedToCore(
-                    connectionHandlerLoop, 
-                    "ConnectionHandler", 
-                    10000,    
-                    NULL,        
-                    1,           
-                    &ConnectionHandlerTask,   
-                    0); 
+  // Setup logger
+  Logger::init(&connectionHandler);
 
   // Start the application
   app.setup();
 }
 
 void loop() {
+  // Loop network first
+  connectionHandler.loop();
+
   // Then the application 
   app.loop();
 }

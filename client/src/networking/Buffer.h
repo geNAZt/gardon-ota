@@ -17,7 +17,7 @@ namespace Network {
             void writeUnsignedShort(unsigned short value);
 
             String readString();
-            void writeString(String value);
+            void writeString(const String& value);
 
             byte readByte();
             void writeByte(byte value);
@@ -36,10 +36,10 @@ namespace Network {
         private:
             unsigned short _pos{};
 
-            WiFiClientSecure* _connection;
+            WiFiClientSecure* _connection{};
             unsigned short _wantedToRead{};
 
-            uint8_t* _buf;
+            uint8_t* _buf{};
             size_t _curSize;
 
             void _ensureWritable(size_t count);

@@ -21,8 +21,8 @@ namespace Network {
 
                 uint8_t id() override;
                 size_t estLength() override;
-                void read(Buffer* buf) override;
-                void write(Buffer* buf) override; 
+                void read(Buffer& buf) override;
+                void write(Buffer& buf) override; 
 
                 Type type();
                 Partition partition();

@@ -14,21 +14,16 @@ namespace Network {
     }
 
     void ConnectionHandler::remote(String remote) {
-        Serial.print(remote);
         this->_lastReconnect = 0;
         this->_remote = remote;
     }
 
     void ConnectionHandler::connect() {
-        Serial.printf("Connecting to %s ...", this->_remote.c_str());
-
         // Connecting to control
         this->_connection->connect(this->_remote.c_str(), 65432, 5000);
     }
 
     void ConnectionHandler::loop() {
-        unsigned long start = micros();
-
         // Check if we are connected
         if (!this->_connection->connected() && this->canReconnect()) {
             this->connect();
@@ -37,6 +32,7 @@ namespace Network {
 
         // Check if connected
         if (!this->_connection->connected()) {
+            // Release the mutex so that the creating function can finish
             return;
         }
 
@@ -47,7 +43,7 @@ namespace Network {
             Handler::PacketHandler* handler = this->_handlers[packetID];
             if (handler != nullptr) {
                 Packet::Packet* packet = handler->generatePacket();
-                packet->read(&buf);
+                packet->read(buf);
                 buf.checkEnd();
                 handler->process(packet);
                 delete packet;
@@ -55,17 +51,21 @@ namespace Network {
                 Serial.println("Unknown packet id");
             }
         }
-
-        Packet::LogPacket* packet = new Packet::LogPacket();
-        packet->logMessage(String("Handling network took ") + String((micros() - start)) + " micros");
-        this->write(packet);
     }
 
     void ConnectionHandler::write(Packet::Packet* packet) {
+        // Only send when connected
+        if (!this->_connection->connected()) {
+            // We delay and try again
+            delay(5000);
+            this->write(packet);
+            return;
+        }
+
         // Create buffer and write packet into it
         Buffer buf(1 + packet->estLength());
         buf.writeByte(packet->id());
-        packet->write(&buf);
+        packet->write(buf);
 
         // Write packet size first
         uint8_t* packetSizeBytes = (uint8_t*) malloc(2);

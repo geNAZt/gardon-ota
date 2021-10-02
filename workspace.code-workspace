@@ -28,7 +28,10 @@
 			"stdexcept": "cpp",
 			"charconv": "cpp",
 			"system_error": "cpp",
-			"xstring": "cpp"
+			"xstring": "cpp",
+			"typeinfo": "cpp",
+			"xmemory": "cpp",
+			"xutility": "cpp"
 		}
 	}
 }

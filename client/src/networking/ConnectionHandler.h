@@ -12,6 +12,7 @@ namespace Network {
             void loop();
             void write(Packet::Packet* packet);
             void remote(String remote);
+            void connect();
 
         private:
             WiFiClientSecure* _connection;
@@ -20,6 +21,6 @@ namespace Network {
             String _remote;
 
             bool canReconnect();
-            void connect();
+
     };
 }

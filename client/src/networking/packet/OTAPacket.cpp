@@ -7,14 +7,14 @@ namespace Network { namespace Packet {
         }
     }
 
-    void OTAPacket::read(Buffer* buf) {
-        this->_type = (Type) buf->readByte();
+    void OTAPacket::read(Buffer& buf) {
+        this->_type = (Type) buf.readByte();
         if (this->type() == START) {
-            this->_partition = (Partition) buf->readByte();
-            this->_size = buf->readUnsignedInt();
-            this->_checksum = buf->readString();
+            this->_partition = (Partition) buf.readByte();
+            this->_size = buf.readUnsignedInt();
+            this->_checksum = buf.readString();
         } else if (this->type() == CHUNK) {
-            this->_data = buf->readBytes();
+            this->_data = buf.readBytes();
         } 
     }
 
@@ -32,7 +32,7 @@ namespace Network { namespace Packet {
         return 1;
     }
 
-    void OTAPacket::write(Buffer* buf) {
+    void OTAPacket::write(Buffer& buf) {
         // Only server can send this, client has no write
     }
 

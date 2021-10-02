@@ -15,7 +15,7 @@ namespace Network {
     }
 
     Buffer::~Buffer() {
-        if (this->_buf) {
+        if (!this->_connection && this->_buf) {
             free(this->_buf);
         }
     }
@@ -88,7 +88,7 @@ namespace Network {
         };        
     }
 
-    void Buffer::writeString(String str) {
+    void Buffer::writeString(const String& str) {
         this->writeUnsignedShort(str.length());
         this->_ensureWritable(str.length());
         strncpy((char*) (this->_buf + this->_pos), str.c_str(), str.length());

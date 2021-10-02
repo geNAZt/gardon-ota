@@ -10,12 +10,12 @@ namespace Network {
             return 2 + this->_firmwareChecksum.length();
         }
 
-        void CurrentVersionPacket::read(Buffer* buffer) {
+        void CurrentVersionPacket::read(Buffer& buffer) {
 
         }
 
-        void CurrentVersionPacket::write(Buffer* buffer) {
-            buffer->writeString(this->_firmwareChecksum);
+        void CurrentVersionPacket::write(Buffer& buffer) {
+            buffer.writeString(this->_firmwareChecksum);
         }
 
         String CurrentVersionPacket::firmwareChecksum() {

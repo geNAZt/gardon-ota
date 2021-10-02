@@ -2,8 +2,8 @@
 
 namespace Network { 
     namespace Packet {
-        void LogPacket::logMessage(String message) {
-            this->_logMessage = message;
+        LogPacket::LogPacket(const String& message) : _logMessage(message) {
+
         }
 
         size_t LogPacket::estLength() {
@@ -14,11 +14,11 @@ namespace Network {
             return 2;
         }
 
-        void LogPacket::write(Buffer* buf) {
-            buf->writeString(this->_logMessage);
+        void LogPacket::write(Buffer& buf) {
+            buf.writeString(this->_logMessage);
         }
 
-        void LogPacket::read(Buffer* buf) {
+        void LogPacket::read(Buffer& buf) {
         }
     }
 }

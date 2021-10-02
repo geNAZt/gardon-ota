@@ -3,14 +3,11 @@ package firmware
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"gardon.local/server/client"
+	"github.com/fsnotify/fsnotify"
 	"log"
 	"math"
 	"os"
-	"time"
-
-	"gardon.local/server/client"
-	"gardon.local/server/network/packet"
-	"github.com/fsnotify/fsnotify"
 )
 
 const CHUNK_SIZE uint16 = 32767
@@ -20,7 +17,6 @@ type Firmware struct {
 
 	chunks [][]byte
 	size   uint32
-	inProgress bool
 
 	cb func(string)
 }
@@ -30,7 +26,7 @@ func NewFirmware(cb func(string)) *Firmware {
 		cb: cb,
 	}
 
-	fw.updateChecksum(false)
+	fw.updateChecksum()
 	go fw.check()
 	return fw
 }
@@ -44,18 +40,14 @@ func (f *Firmware) check() {
 				select {
 				case m := <-watcher.Events:
 					log.Printf("Got new fs event: %s\n", m.Op)
-					f.updateChecksum(false)
+					f.updateChecksum()
 				}
 			}
 		}
 	}
 }
 
-func (f *Firmware) updateChecksum(force bool) {
-	if f.inProgress && !force {
-		return
-	}
-
+func (f *Firmware) updateChecksum() {
 	sum := md5.New()
 	file, err := os.Open("firmware/firmware.bin")
 	if err != nil {
@@ -66,15 +58,6 @@ func (f *Firmware) updateChecksum(force bool) {
 	stat, err := file.Stat()
 	if err != nil {
 		log.Printf("Could not check for new firmware: %v\n", err)
-		return
-	}
-
-	// Wait 30 seconds till everything is done
-	if time.Now().Sub(stat.ModTime()) < 30*time.Second {
-		f.inProgress = true
-		timer := time.NewTimer(30 * time.Second)
-		<-timer.C
-		f.updateChecksum(true)
 		return
 	}
 
@@ -100,14 +83,14 @@ func (f *Firmware) updateChecksum(force bool) {
 	// Get the 16 bytes hash
 	hashInBytes := sum.Sum(nil)[:16]
 
-	// Convert the bytes to a string
-	f.checksum = hex.EncodeToString(hashInBytes)
-	f.chunks = chunks
-	f.size = uint32(stat.Size())
-	f.cb(f.checksum)
-
-	// Remove in progress flag
-	f.inProgress = false
+	newSum := hex.EncodeToString(hashInBytes)
+	if newSum != f.checksum {
+		// Convert the bytes to a string
+		f.checksum = newSum
+		f.chunks = chunks
+		f.size = uint32(stat.Size())
+		f.cb(f.checksum)
+	}
 }
 
 func (f *Firmware) Checksum() string {
@@ -116,7 +99,7 @@ func (f *Firmware) Checksum() string {
 
 func (f *Firmware) SendUpdate(client client.Client) {
 	// Send OTA start first
-	client.Write(packet.NewOTAPacketStart(packet.FIRMWARE, f.size, f.checksum))
+	/*client.Write(packet.NewOTAPacketStart(packet.FIRMWARE, f.size, f.checksum))
 
 	// Now send all chunks
 	for _, chunk := range f.chunks {
@@ -124,6 +107,6 @@ func (f *Firmware) SendUpdate(client client.Client) {
 	}
 
 	// Now send the end so it flashes and restarts
-	client.Write(packet.NewOTAPacket(packet.END, packet.FIRMWARE))
+	client.Write(packet.NewOTAPacket(packet.END, packet.FIRMWARE))*/
 
 }

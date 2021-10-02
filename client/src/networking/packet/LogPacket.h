@@ -6,14 +6,13 @@ namespace Network {
     namespace Packet {
         class LogPacket : public Packet {
             public: 
+                LogPacket(const String& message);
                 uint8_t id() override;
                 size_t estLength() override;
-                void read(Buffer* buf) override;
-                void write(Buffer* buf) override; 
-
-                void logMessage(String message);
+                void read(Buffer& buf) override;
+                void write(Buffer& buf) override; 
             private:
-                String _logMessage;
+                const String& _logMessage;
         };
     }
 }
