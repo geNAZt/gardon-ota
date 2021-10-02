@@ -3,6 +3,8 @@
 #include "ConnectionHandler.h"
 #include "handler/OTAHandler.h"
 
+#include "packet/LogPacket.h"
+
 namespace Network {
     ConnectionHandler::ConnectionHandler(WiFiClientSecure* connection) {
         this->_connection = connection;    
@@ -11,7 +13,34 @@ namespace Network {
         this->_handlers[1] = new Handler::OTAHandler();
     }
 
+    void ConnectionHandler::remote(String remote) {
+        Serial.print(remote);
+        this->_lastReconnect = 0;
+        this->_remote = remote;
+    }
+
+    void ConnectionHandler::connect() {
+        Serial.printf("Connecting to %s ...", this->_remote.c_str());
+
+        // Connecting to control
+        this->_connection->connect(this->_remote.c_str(), 65432, 5000);
+    }
+
     void ConnectionHandler::loop() {
+        unsigned long start = micros();
+
+        // Check if we are connected
+        if (!this->_connection->connected() && this->canReconnect()) {
+            this->connect();
+            this->_lastReconnect = millis();
+        }
+
+        // Check if connected
+        if (!this->_connection->connected()) {
+            return;
+        }
+
+        // Check if there is data
         while (this->_connection->available() > 0) {
             Buffer buf(this->_connection);
             byte packetID = buf.readByte();
@@ -26,6 +55,10 @@ namespace Network {
                 Serial.println("Unknown packet id");
             }
         }
+
+        Packet::LogPacket* packet = new Packet::LogPacket();
+        packet->logMessage(String("Handling network took ") + String((micros() - start)) + " micros");
+        this->write(packet);
     }
 
     void ConnectionHandler::write(Packet::Packet* packet) {
@@ -43,5 +76,10 @@ namespace Network {
 
         // Then write the packet contents
         this->_connection->write(buf.buf(), buf.length());
+        delete packet;
+    }
+
+    bool ConnectionHandler::canReconnect() {
+        return millis() - this->_lastReconnect > 30000;
     }
 }

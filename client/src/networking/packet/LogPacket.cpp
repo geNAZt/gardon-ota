@@ -2,7 +2,7 @@
 
 namespace Network { 
     namespace Packet {
-        void LogPacket::setLogMessage(String message) {
+        void LogPacket::logMessage(String message) {
             this->_logMessage = message;
         }
 

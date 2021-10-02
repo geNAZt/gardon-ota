@@ -10,7 +10,10 @@ CirculationPump::CirculationPump(char pin, NTPClient* timeClient) {
     this->_pin = pin;
     this->_time = timeClient;
 
-    pinMode(this->_pin, OUTPUT);
+    // Setup PWM
+    ledcSetup(0, 30000, 8);
+    ledcAttachPin(this->_pin, 0);
+
     this->off();
 }
 
@@ -27,12 +30,12 @@ void CirculationPump::loop(unsigned long millis) {
 
 void CirculationPump::off() {
     this->_on = false;
-    digitalWrite(this->_pin, LOW);
+    ledcWrite(this->_pin, 0);
 }
 
 void CirculationPump::onFor(unsigned long forMillis) {
     this->_on = true;
-    digitalWrite(this->_pin, HIGH);
+    ledcWrite(this->_pin, 85);
     this->_onUntil = millis() + forMillis;
 }
 

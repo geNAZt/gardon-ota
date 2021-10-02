@@ -26,7 +26,7 @@ void connectionHandlerLoop(void* pvParameters) {
     connectionHandler.loop();
 
     // Give away the core
-    delay(100);
+    delay(500);
   }
 }
 
@@ -87,8 +87,8 @@ void setup() {
   connection.loadPrivateKey(clientKey, clientKey.size());
   clientKey.close();
 
-  // Connecting to control
-  connection.connect((const char*) doc["remote"], 65432, 5000);
+  // Set remote 
+  connectionHandler.remote(doc["remote"].as<String>());
 
   // Check what firmware we currently run
   String hash = ESP.getSketchMD5();
@@ -102,13 +102,13 @@ void setup() {
 
   // Start the TCP listener on core 0
   xTaskCreatePinnedToCore(
-                    connectionHandlerLoop,   /* Task function. */
-                    "ConnectionHandler",     /* name of task. */
-                    10000,       /* Stack size of task */
-                    NULL,        /* parameter of the task */
-                    1,           /* priority of the task */
-                    &ConnectionHandlerTask,      /* Task handle to keep track of created task */
-                    0);          /* pin task to core 0 */       
+                    connectionHandlerLoop, 
+                    "ConnectionHandler", 
+                    10000,    
+                    NULL,        
+                    1,           
+                    &ConnectionHandlerTask,   
+                    0); 
 
   // Start the application
   app.setup();

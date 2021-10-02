@@ -2,6 +2,7 @@ package network
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/binary"
 	"fmt"
 	"log"
@@ -22,20 +23,22 @@ var (
 func Init(firmware *firmware.Firmware) {
 	fw = firmware
 
-	handlers = make([]handler.Handler, 1)
+	handlers = make([]handler.Handler, 3)
 	handlers[0] = &handler.CurrentVersionHandler{
 		Firmware: fw,
 	}
+
+	handlers[2] = &handler.LogHandler{}
 }
 
 type Handler struct {
-	conn net.Conn
+	conn *tls.Conn
 
 	data    *client.Data
 	closeCB func(conn net.Conn)
 }
 
-func NewHandler(conn net.Conn, closeCB func(c net.Conn)) *Handler {
+func NewHandler(conn *tls.Conn, closeCB func(c net.Conn)) *Handler {
 	h := &Handler{
 		conn:    conn,
 		data:    &client.Data{},
@@ -73,7 +76,6 @@ func (h *Handler) serve() {
 	defer h.conn.Close()
 
 	for {
-		log.Print("server: conn: waiting")
 		_, err := util.ReadUnsignedShort(h.conn) // We need some sort of reader which can count
 		if err != nil {
 			log.Printf("Connection closed: %s", err)
@@ -111,4 +113,9 @@ func (h *Handler) UpdateFirmware(checksum string) {
 
 func (h *Handler) SetFirmwareChecksum(checksum string) {
 	h.data.FirmwareVersion = checksum
+}
+
+func (h *Handler) Name() string {
+	connectionState := h.conn.ConnectionState()
+	return connectionState.PeerCertificates[0].Subject.CommonName
 }

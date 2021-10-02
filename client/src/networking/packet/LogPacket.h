@@ -11,7 +11,7 @@ namespace Network {
                 void read(Buffer* buf) override;
                 void write(Buffer* buf) override; 
 
-                void setLogMessage(String message);
+                void logMessage(String message);
             private:
                 String _logMessage;
         };

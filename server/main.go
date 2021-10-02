@@ -41,6 +41,7 @@ func main() {
 	config := tls.Config{
 		Certificates: []tls.Certificate{cert},
 		ClientCAs: clientCAs,
+		ClientAuth: tls.RequestClientCert,
 	}
 	config.Rand = rand.Reader
 
@@ -72,7 +73,6 @@ func main() {
 			connections.Store(conn.RemoteAddr().String(), network.NewHandler(tlscon, func(c net.Conn) {
 				connections.Delete(c.RemoteAddr().String())
 			}))
-			// handler.Write(packet.NewOTAPacket(packet.START, packet.FS))
 		} else {
 			err := conn.Close()
 			if err != nil {

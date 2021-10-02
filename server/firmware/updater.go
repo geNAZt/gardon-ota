@@ -20,6 +20,7 @@ type Firmware struct {
 
 	chunks [][]byte
 	size   uint32
+	inProgress bool
 
 	cb func(string)
 }
@@ -29,7 +30,7 @@ func NewFirmware(cb func(string)) *Firmware {
 		cb: cb,
 	}
 
-	fw.updateChecksum()
+	fw.updateChecksum(false)
 	go fw.check()
 	return fw
 }
@@ -41,15 +42,20 @@ func (f *Firmware) check() {
 		if err == nil {
 			for {
 				select {
-				case <-watcher.Events:
-					f.updateChecksum()
+				case m := <-watcher.Events:
+					log.Printf("Got new fs event: %s\n", m.Op)
+					f.updateChecksum(false)
 				}
 			}
 		}
 	}
 }
 
-func (f *Firmware) updateChecksum() {
+func (f *Firmware) updateChecksum(force bool) {
+	if f.inProgress && !force {
+		return
+	}
+
 	sum := md5.New()
 	file, err := os.Open("firmware/firmware.bin")
 	if err != nil {
@@ -65,9 +71,10 @@ func (f *Firmware) updateChecksum() {
 
 	// Wait 30 seconds till everything is done
 	if time.Now().Sub(stat.ModTime()) < 30*time.Second {
+		f.inProgress = true
 		timer := time.NewTimer(30 * time.Second)
 		<-timer.C
-		f.updateChecksum()
+		f.updateChecksum(true)
 		return
 	}
 
@@ -98,6 +105,9 @@ func (f *Firmware) updateChecksum() {
 	f.chunks = chunks
 	f.size = uint32(stat.Size())
 	f.cb(f.checksum)
+
+	// Remove in progress flag
+	f.inProgress = false
 }
 
 func (f *Firmware) Checksum() string {
