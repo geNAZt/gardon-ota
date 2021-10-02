@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"gardon.local/server/client"
+	"gardon.local/server/network/packet"
 	"github.com/fsnotify/fsnotify"
 	"log"
 	"math"
@@ -99,7 +100,7 @@ func (f *Firmware) Checksum() string {
 
 func (f *Firmware) SendUpdate(client client.Client) {
 	// Send OTA start first
-	/*client.Write(packet.NewOTAPacketStart(packet.FIRMWARE, f.size, f.checksum))
+	client.Write(packet.NewOTAPacketStart(packet.FIRMWARE, f.size, f.checksum))
 
 	// Now send all chunks
 	for _, chunk := range f.chunks {
@@ -107,6 +108,6 @@ func (f *Firmware) SendUpdate(client client.Client) {
 	}
 
 	// Now send the end so it flashes and restarts
-	client.Write(packet.NewOTAPacket(packet.END, packet.FIRMWARE))*/
+	client.Write(packet.NewOTAPacket(packet.END, packet.FIRMWARE))
 
 }

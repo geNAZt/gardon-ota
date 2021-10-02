@@ -4,6 +4,7 @@
 #include "handler/OTAHandler.h"
 
 #include "packet/LogPacket.h"
+#include "packet/CurrentVersionPacket.h"
 
 namespace Network {
     ConnectionHandler::ConnectionHandler(WiFiClientSecure* connection) {
@@ -21,6 +22,16 @@ namespace Network {
     void ConnectionHandler::connect() {
         // Connecting to control
         this->_connection->connect(this->_remote.c_str(), 65432, 5000);
+
+        // Check what firmware we currently run
+        String hash = ESP.getSketchMD5();
+        Serial.print("Current firmware hash ");
+        Serial.println(hash);
+
+        // Tell the server which firmware we have so it can decide if we need a new one
+        Packet::CurrentVersionPacket* packet = new Packet::CurrentVersionPacket();
+        packet->firmwareChecksum(hash);
+        this->write(packet);
     }
 
     void ConnectionHandler::loop() {

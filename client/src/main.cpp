@@ -82,16 +82,6 @@ void setup() {
   connectionHandler.remote(doc["remote"].as<String>());
   connectionHandler.connect();
 
-  // Check what firmware we currently run
-  String hash = ESP.getSketchMD5();
-  Serial.print("Current firmware hash ");
-  Serial.println(hash);
-
-  // Tell the server which firmware we have so it can decide if we need a new one
-  Network::Packet::CurrentVersionPacket* packet = new Network::Packet::CurrentVersionPacket();
-  packet->firmwareChecksum(hash);
-  connectionHandler.write(packet);
-
   // Setup logger
   Logger::init(&connectionHandler);
 
