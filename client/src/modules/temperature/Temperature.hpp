@@ -19,8 +19,14 @@ namespace Module {
                 }
 
                 void loop(unsigned long millis) {
-                    if (this->_temperatureSensor->isConversionComplete())
+                    if (this->_temperatureSensor->isConversionComplete()) {
+                        float temp = this->_temperatureSensor->getTempCByIndex(0);
+                        if (temp > -127) {
+                            this->_lastTemperature = this->_temperatureSensor->getTempCByIndex(0);
+                        }
+                        
                         this->_temperatureSensor->requestTemperatures();
+                    }
                 }
 
                 const char* name() {
@@ -32,11 +38,12 @@ namespace Module {
                 }
 
                 float temperature() {
-                    return this->_temperatureSensor->getTempCByIndex(0);
+                    return this->_lastTemperature;
                 }
 
             private:
                 DallasTemperature* _temperatureSensor;
+                float _lastTemperature{};
         };
 
     }

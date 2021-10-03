@@ -17,6 +17,7 @@ namespace Module {
                     this->_circulationPump = circulationPump;
 
                     pinMode(this->_pin, OUTPUT);
+                    this->off();
                 }
 
                 void loop(unsigned long millis) {
@@ -37,7 +38,7 @@ namespace Module {
                         float ppmValue = this->_tds->ppmValue();
                         
                         // First check if we need to down pH
-                        if ( ppmValue > 10 && ppmValue < 950 ) {
+                        if ( ppmValue < 950 ) {
                             this->_occurence++;
                             if (this->_occurence == 5) {
                                 logger.info("Pumping nutrients...");
@@ -72,16 +73,16 @@ namespace Module {
                 bool _on{};
 
                 void off() {
-                    digitalWrite(this->_pin, LOW);
+                    digitalWrite(this->_pin, HIGH);
                     this->_pumpUntil = 0;
                     this->_on = false;
                 }
 
                 void on() {
-                    digitalWrite(this->_pin, HIGH);
-                    this->_pumpUntil = millis() + (5 * 200);
-                    this->_inProgressUntil = millis() + 30 * 1000;
-                    this->_circulationPump->onFor(10 * 1000);
+                    digitalWrite(this->_pin, LOW);
+                    this->_pumpUntil = millis() + 2000;
+                    this->_inProgressUntil = millis() + 30000;
+                    this->_circulationPump->onFor(10000);
                     this->_on = true;
                 }
             };

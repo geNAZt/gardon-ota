@@ -44,12 +44,12 @@ namespace Module {
 
                 void off() {
                     this->_on = false;
-                    digitalWrite(this->_pin, LOW);
+                    digitalWrite(this->_pin, HIGH);
                 }
 
                 void on() {
                     this->_on = true;
-                    digitalWrite(this->_pin, HIGH);
+                    digitalWrite(this->_pin, LOW);
                 }
         };
     }

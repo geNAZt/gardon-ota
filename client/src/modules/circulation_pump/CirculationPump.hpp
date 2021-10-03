@@ -12,9 +12,7 @@ namespace Module {
                     this->_pin = pin;
                     this->_time = timeClient;
 
-                    // Setup PWM
-                    ledcSetup(0, 30000, 8);
-                    ledcAttachPin(this->_pin, 0);
+                    pinMode(this->_pin, OUTPUT);
 
                     this->off();
                 }
@@ -40,13 +38,13 @@ namespace Module {
 
                 void onFor(unsigned long forMillis) {
                     this->_on = true;
-                    ledcWrite(this->_pin, 85);
+                    digitalWrite(this->_pin, HIGH);
                     this->_onUntil = millis() + forMillis;
                 }
 
                 void off() {
                     this->_on = false;
-                    ledcWrite(this->_pin, 0);
+                    digitalWrite(this->_pin, LOW);
                 }
 
                 bool isOn() {

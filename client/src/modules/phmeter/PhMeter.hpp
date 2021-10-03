@@ -20,8 +20,8 @@ namespace Module {
 
         class PhMeter : public Average, public ModuleBase {
             public:
-                explicit PhMeter(char pin, Temperature::Temperature* temperature) : Average::Average(pin) {
-                    this->_temperature = temperature;
+                explicit PhMeter(char pin) : Average::Average(pin) {
+
                 }
 
                 void loop(unsigned long millis) {
@@ -42,20 +42,12 @@ namespace Module {
 
                 void onFullAverage( unsigned short int average ) {
                     float voltage = ((float) average * 3.3f) / ADC_MAX;
-                    // logger.debug(String("Voltage: ") + String(voltage, 8));
-
                     float tempPhValue = m * voltage + b;
-                    // logger.debug(String("PH (before temp): ") + String(tempPhValue, 8));
-                    
-                    float tempC = this->_temperature->temperature();
-                    float diffC = tempC - 25.0f;
-
-                    this->_phValue = tempPhValue + (diffC * PH_PER_C);
+                    logger.debug(String("PH: ") + String(tempPhValue, 8));
+                    this->_phValue = tempPhValue;
                 }
 
             private:
-                Temperature::Temperature* _temperature;
-
                 float _phValue{};
             };
     }
