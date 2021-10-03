@@ -72,8 +72,6 @@ namespace Module {
                                         this->down();
                                         this->_downReachTarget = PHUPDOWN_DOWN_REACH;
                                         this->_occurence = 0;
-                                    } else {
-                                        this->_circulationPump->onFor(1000);
                                     }
                                 } else if (phValue <= PHUPDOWN_UP_LIMIT) {
                                     this->_occurence++;
@@ -82,8 +80,6 @@ namespace Module {
                                         this->up();
                                         this->_upReachTarget = PHUPDOWN_UP_REACH;
                                         this->_occurence = 0;
-                                    } else {
-                                        this->_circulationPump->onFor(1000);
                                     }
                                 } else {
                                     this->_occurence = 0;
@@ -128,7 +124,7 @@ namespace Module {
                     this->_direction = -1;
                     this->_pumpUntil = millis() + 500;
                     this->_inProgressUntil = millis() + 60000;
-                    this->_circulationPump->onFor(30000);
+                    this->_circulationPump->onFor(10000);
                 }
 
                 void up() {
@@ -136,7 +132,7 @@ namespace Module {
                     this->_direction = 1;
                     this->_pumpUntil = millis() + 1000;
                     this->_inProgressUntil = millis() + 60000;
-                    this->_circulationPump->onFor(30000);
+                    this->_circulationPump->onFor(10000);
                 }
         };
     }

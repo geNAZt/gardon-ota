@@ -1,7 +1,9 @@
 package firmware
 
 import (
+	"bytes"
 	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"gardon.local/server/client"
 	"gardon.local/server/network/packet"
@@ -59,6 +61,48 @@ func (f *Firmware) updateChecksum() {
 	stat, err := file.Stat()
 	if err != nil {
 		log.Printf("Could not check for new firmware: %v\n", err)
+		return
+	}
+
+	// Get last 32 bytes and make a sha256 from all others
+	seek, err := file.Seek(-32, 2)
+	if err != nil {
+		log.Printf("Could not seek to end in new firmware: %v\n", err)
+		return
+	}
+
+	log.Printf("Seeked to %d\n", seek)
+	sHaFile := make([]byte, 32)
+	_, err = file.Read(sHaFile)
+	if err != nil {
+		log.Printf("Could not read checksum in new firmware: %v\n", err)
+		return
+	}
+
+	// Now go to the start and read until last 32 byte
+	content := make([]byte, stat.Size() - 32)
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		log.Printf("Could not seek to start in new firmware: %v\n", err)
+		return
+	}
+
+	_, err = file.Read(content)
+	if err != nil {
+		log.Printf("Could not read content in new firmware: %v\n", err)
+		return
+	}
+
+	sha := sha256.New()
+	sha.Write(content)
+	sHaComp := sha.Sum(nil)[:32]
+
+	if bytes.Compare(sHaFile, sHaComp) != 0 {
+		return
+	}
+
+	_, err = file.Seek(0,0)
+	if err != nil {
 		return
 	}
 

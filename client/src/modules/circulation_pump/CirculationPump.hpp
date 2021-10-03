@@ -24,7 +24,7 @@ namespace Module {
 
                     // Time to start table
                     if ((this->_time->getMinutes() == 0 || this->_time->getMinutes() == 30) && this->_time->getSeconds() == 0) {
-                        this->onFor(30 * 1000);
+                        this->onFor(5000);
                     }
                 }
 

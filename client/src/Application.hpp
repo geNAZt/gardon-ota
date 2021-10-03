@@ -50,7 +50,7 @@ class Application {
 
         void setup() {
             // Create a time provider
-            timeClient = new NTPClient(ntpUDP, "europe.pool.ntp.org", 2 * 3600, 60000);
+            timeClient = new NTPClient(ntpUDP, "europe.pool.ntp.org", 2 * 3600, 2 * 60000);
 
             // Init all modules
             modules[8] = new Module::Shunt::Shunt();
@@ -61,7 +61,7 @@ class Application {
             modules[10] = new Module::Temperature::Temperature(&oneWire);
 
             modules[2] = new Module::Moisture::Moisture(MOISTURE_PIN, (Module::Pump::Pump*) modules[1]);
-            modules[0] = new Module::PhMeter::PhMeter(PH_PIN);
+            modules[0] = new Module::PhMeter::PhMeter(PH_PIN, (Module::Temperature::Temperature*) modules[10]);
 
             modules[6] = new Module::TDS::TDS(TDS_PIN, (Module::Temperature::Temperature*) modules[10]);
             modules[5] = new Module::PhUpDown::PhUpDown(UP_PIN, DOWN_PIN, (Module::PhMeter::PhMeter*) modules[0], (Module::CirculationPump::CirculationPump*) modules[9], (Module::TDS::TDS*) modules[6]);
