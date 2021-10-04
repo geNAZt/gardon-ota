@@ -21,6 +21,7 @@ namespace Network {
             String _remote;
 
             bool canReconnect();
+            void write(Packet::Packet* packet, char retries);
 
     };
 }

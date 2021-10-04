@@ -20,8 +20,11 @@ namespace Network {
     }
 
     void ConnectionHandler::connect() {
+        // 
+        Serial.println("Trying to connect...");
+
         // Connecting to control
-        this->_connection->connect(this->_remote.c_str(), 65432, 5000);
+        this->_connection->connect(this->_remote.c_str(), 65432, 500);
 
         // Check what firmware we currently run
         String hash = ESP.getSketchMD5();
@@ -65,11 +68,21 @@ namespace Network {
     }
 
     void ConnectionHandler::write(Packet::Packet* packet) {
+        this->write(packet, 0);
+    }
+
+    void ConnectionHandler::write(Packet::Packet* packet, char retries) {
         // Only send when connected
-        if (!this->_connection->connected()) {
+        if (!this->_connection->connected() && retries < 5) {
             // We delay and try again
-            delay(5000);
-            this->write(packet);
+            delay(1000);
+            this->write(packet, ++retries);
+            return;
+        }
+
+        // If we still aren't connected and the packet tried 5 times we simple discard it
+        if (!this->_connection->connected() && retries >= 5) {
+            delete packet;
             return;
         }
 
@@ -91,6 +104,6 @@ namespace Network {
     }
 
     bool ConnectionHandler::canReconnect() {
-        return millis() - this->_lastReconnect > 30000;
+        return millis() - this->_lastReconnect > 60000;
     }
 }

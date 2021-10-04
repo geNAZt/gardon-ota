@@ -82,6 +82,8 @@ void setup() {
   connectionHandler.remote(doc["remote"].as<String>());
   connectionHandler.connect();
 
+  Serial.println("Application setup");
+
   // Setup logger
   Logger::init(&connectionHandler);
 
